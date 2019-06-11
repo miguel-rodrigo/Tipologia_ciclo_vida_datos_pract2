@@ -5,7 +5,6 @@ data <- fread('data/train.csv')
 
 
 #### FIX DATA FORMAT ####
-# data[Embarked == "", Embarked := "S"]
 data[, `:=`(
   Survived = as.factor(Survived),
   Embarked = as.factor(Embarked),
@@ -84,6 +83,12 @@ chisq.test(data$Pclass, data$Survived)
 # 2. Dependencia con la salida
 data[, unique(Sex)]  # Sólo hay dos, había que comprobar por los valores vacíos etc...
 chisq.test(data$Sex, data$Survived)
+
+
+#### EMBARKED ####
+# Como solo hay dos, podría eliminarse. Sin embargo, tenemos muy pocos datos con lo que se imputa
+#   empleando el valor más frecuente ("S")
+data[Embarked == "", Embarked := "S"]
 
 
 # Ahora, las numéricas
@@ -175,28 +180,26 @@ data_fix[, unique(SibSp)]
 plot(density(data_fix$SibSp))
 
 
-
-
 #### PARCH ####
-# ...lo mismo...
+data_fix[, unique(SibSp)]
+plot(density(data_fix$SibSp))
 
 
 #### FARE ####
 # 1. Ver distribución: ¿outliers?
 # 2. Ver relaciones
+boxplot(data_fix$Fare)
+summary(aov(Survived ~ Fare, data=data))
 
 
-# Hacer lista de versiones de los datos
-data_fix_age <- copy(data)
-data_fix_age[is.na(Age), Age := median(data[!is.na(Age), Age])]
-# data_fix_age[is.na(Age), Age := -999]
+#### SELECCIÓN DE ATRIBUTOS ####
+ctrl <- rfeControl(functions = rfFuncs,
+                   method = "repeatedcv",
+                   repeats = 5,
+                   verbose = TRUE)
 
+rfProfile <- rfe(data_fix[, !"Survived", with=F], data_fix$Survived,
+                 sizes = 1:(ncol(data_fix)-1),
+                 rfeControl = ctrl)
 
-
-no_nas1 <- data[, -c("Age", "Cabin")]
-no_nas2 <- data_fix_age[, -c("Cabin")]
-
-
-
-# OOB assesment
-print(model)
+clean.data <- data_fix[, rfProfile$optVariables, with=FALSE]
