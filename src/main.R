@@ -1,5 +1,6 @@
 library(data.table)
 library(caret)
+library(GGally)
 
 data <- fread('data/train.csv')
 
@@ -20,6 +21,8 @@ data[, lapply(.SD, function(x) {sum(is.na(x) | x=="")/.N} )]
 
 # Hay casi un 80% de datos faltantes en la cabina, con lo que es probable que se elimine. Hay casi un 20 en la edad,
 # por lo que se testeará para ver cuál es la mejor solución.
+
+ggpairs(data)
 
 # En lugar de ir paso a paso, se va mejor variable a variable.
 
@@ -203,3 +206,7 @@ rfProfile <- rfe(data_fix[, !"Survived", with=F], data_fix$Survived,
                  rfeControl = ctrl)
 
 clean.data <- data_fix[, rfProfile$optVariables, with=FALSE]
+
+
+#### OUTPUT RESULTS ####
+fwrite(clean.data, "data/clean_train.csv")
