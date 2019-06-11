@@ -36,7 +36,7 @@ data[, lapply(.SD, function(x) {sum(is.na(x) | x=="")/.N} )]
 #   en las filas que faltan.
 
 # 1.
-unique(data$Cabin)
+uniqueN(data$Cabin)
 
 # 3., 4.
 data[, `:=`(
